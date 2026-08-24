@@ -952,6 +952,27 @@ function vGruposBusca(busca) {
   </section>`;
 }
 
+function somaBusca(lista, totGeral, termo, mostraCanal, canaisOn) {
+  const v = lista.reduce((a, o) => a + o.v, 0), q = lista.reduce((a, o) => a + o.q, 0);
+  const nMes = mesesSel().length;
+  const canal = {};
+  if (mostraCanal) lista.forEach(o => { for (const c in o.canal) canal[c] = (canal[c] || 0) + o.canal[c]; });
+  return `<div class="kpis" style="margin:2px 0 12px">
+    <div class="kpi accent"><div class="k">${termo ? 'Soma de “' + esc(termo) + '”' : 'Soma da lista'}</div>
+      <div class="v"><small>R$</small>${nf.format(Math.round(v))}</div>
+      <div class="d">${nf.format(lista.length)} produto(s) · ${pct(v, totGeral)} do recorte</div></div>
+    <div class="kpi"><div class="k">Quantidade</div><div class="v">${nf.format(Math.round(q))}</div>
+      <div class="d">unidades vendidas</div></div>
+    <div class="kpi"><div class="k">Preço médio</div><div class="v"><small>R$</small>${q ? nf2.format(v / q) : '–'}</div>
+      <div class="d">faturamento ÷ quantidade</div></div>
+    ${nMes > 1 ? `<div class="kpi"><div class="k">Média por mês</div><div class="v"><small>R$</small>${nf.format(Math.round(v / nMes))}</div>
+      <div class="d">${nf.format(Math.round(q / nMes))} un/mês · ${nMes} meses</div></div>` : ''}
+    ${mostraCanal ? canaisOn.filter(c => canal[c.id] > 0).map(c => `<div class="kpi"><div class="k">${c.lab}</div>
+      <div class="v"><small>R$</small>${nf.format(Math.round(canal[c.id]))}</div>
+      <div class="d">${pct(canal[c.id], v)} da busca</div></div>`).join('') : ''}
+  </div>`;
+}
+
 function vProdutos() {
   let list = produtos();
   const tot = list.reduce((a, o) => a + o.v, 0);
@@ -988,6 +1009,7 @@ function vProdutos() {
     <div class="card"><h3>Listagem completa de produtos</h3>
       <p class="hint">${nf.format(filt.length)} de ${nf.format(list.length)} produtos · clique no título da coluna para ordenar</p>
       <input class="searchbox" id="qprod" placeholder="Buscar por produto, subgrupo ou categoria…" value="${esc(S.q)}">
+      ${somaBusca(filt, tot, q, mostraCanal, canaisOn)}
       <div class="crumb"><button data-vercanal="1">${mostraCanal ? '✓ colunas por canal ligadas' : 'mostrar colunas por canal'}</button>
         <span>${mostraCanal ? 'valores rateados pelo mix do subgrupo' : ''}</span></div>
       <div class="tscroll"><table><thead><tr>${th('nome', 'Produto')}${th('q', 'Qtd')}${th('v', 'Faturamento')}${th('medio', 'Preço médio')}${mostraCanal ? canaisOn.map(x => `<th>${x.lab}</th>`).join('') : ''}<th>Share</th><th>ABC</th></tr></thead>
